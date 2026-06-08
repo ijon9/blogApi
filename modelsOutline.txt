@@ -1,0 +1,21 @@
+model User {
+    id Int @id @default(autoincrement())
+    email String @unique 
+    password String
+}
+
+model Post {
+    id Int @id @default(autoincrement())
+    title String
+    content String
+    authorid Int
+    date DateTime @defult(now())
+    published Boolean
+}
+
+model Comment {
+    id Int @id @default(autoincrement())
+    content String
+    postId Int
+    date DateTime @defult(now())
+}
