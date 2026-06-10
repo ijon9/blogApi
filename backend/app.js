@@ -1,19 +1,18 @@
 import { prisma } from "./lib/prisma.js";
 import express from 'express';
-import session from 'express-session'
-import passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
+import cors from 'cors';
+import bcrypt from 'bcryptjs'
 
 // const express = require("express");
 const app = express();
 
-// app.use(session({
-//   secret: 'secret',
-//   resave: false,
-//   saveUninitialized: false
-// }));
-// app.use(passport.session());
-// app.use(express.urlencoded({ extended: false }));
+app.use(cors({
+  origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json());
 
 app.get('/', async (req, res) => {
     const users = await prisma.user.findMany({});
@@ -27,6 +26,23 @@ app.post('/createPost', async (req, res) => {
 });
 
 // Create comment
+// Sign up
+app.post('/signUp', async (req, res) => {
+  const payload = req.body;
+  const hashed = await bcrypt.hash(payload.password, 10);
+  console.log(hashed);
+  res.send("Valid");
+})
+
+// import { jwtDecode } from "jwt-decode";
+
+// const token = localStorage.getItem("token");
+// if (token) {
+//     const user = jwtDecode(token);
+//     console.log(user.name); // Accessing token properties
+// }
+
+// Log in
 
 const PORT = 3000;
 app.listen(PORT, (error) => {
