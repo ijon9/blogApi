@@ -25,13 +25,41 @@ app.get('/', async (req, res) => {
 app.post('/createPost', async (req, res) => {
 });
 
+// Login
+app.post('/logIn', async (req, res) => {
+  const payload = req.body;
+  const user = await prisma.user.findUnique({
+    // where: { email: payload.email },
+    where: { email: payload.email },
+  })
+  if(!user) {
+    return res.send("Incorrect email");
+  }
+  const match = await bcrypt.compare(payload.password, user.password);
+  if(!match) {
+    return res.send("Incorrect password");
+  }
+  return res.send("Success");
+});
+
 // Create comment
 // Sign up
 app.post('/signUp', async (req, res) => {
   const payload = req.body;
   const hashed = await bcrypt.hash(payload.password, 10);
-  console.log(hashed);
-  res.send("Valid");
+  try {
+    const user = await prisma.user.create({
+      data: {
+        email: payload.email,
+        password: hashed,
+        name: payload.name
+      }
+    });
+  } catch(e) {
+    res.send("Email already exists");
+  }
+  
+  res.send("Success");
 })
 
 // import { jwtDecode } from "jwt-decode";

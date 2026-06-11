@@ -3,15 +3,31 @@ import axios, { isCancel, AxiosError } from 'axios';
 
 function Home() {
 
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+
   async function signUp() {
-    const backendURL = import.meta.env.VITE_BACKEND_URL+'/signUp';
     const payload = {
       email: document.getElementById('email2').value,
       name: document.getElementById('name2').value,
       password: document.getElementById('password2').value,
     }
-    const response = await axios.post(backendURL, payload);
-    console.log(response.data);
+    const response = await axios.post(backendURL+'/signUp', payload);
+    document.getElementById('email2').value = '';
+    document.getElementById('name2').value = '';
+    document.getElementById('password2').value = '';
+    const message = response.data;
+    if(message !== "Success") alert(message);
+  }
+
+  async function logIn() {
+    const payload = {
+      email: document.getElementById('email').value,
+      password: document.getElementById('password').value,
+    }
+    const response = await axios.post(backendURL+'/logIn', payload);
+    // console.log(response.data);
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
   }
 
   return (
@@ -22,7 +38,7 @@ function Home() {
       <input id="email" name="email" placeholder="email" type="text" /><br/>
       <label for="password">Password:</label>
       <input id="password" name="password" type="password" /><br/>
-      <button type="submit">Log In</button>
+      <button type="submit" onClick={() => logIn()}>Log In</button>
     </div>
     <br/>
     <div>OR:</div>
