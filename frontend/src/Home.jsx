@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
+import { useNavigate } from 'react-router';
 
 function Home() {
+  const navigate = useNavigate();
 
   const backendURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -17,6 +19,7 @@ function Home() {
     document.getElementById('password2').value = '';
     const message = response.data;
     if(message !== "Success") alert(message);
+    else alert('Account created!');
   }
 
   async function logIn() {
@@ -30,7 +33,8 @@ function Home() {
     const obj = response.data;
     if(obj.message !== "Success") alert(obj.message);
     localStorage.setItem('token', obj.token);
-    console.log(localStorage.getItem('token'));
+    navigate("/viewPosts");
+    // console.log(localStorage.getItem('token'));
   }
 
   return (

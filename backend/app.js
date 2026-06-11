@@ -24,6 +24,19 @@ app.get('/', async (req, res) => {
     // res.redirect('https://google.com');
 })
 
+// Get posts
+app.post('/viewPosts', async(req, res) => {
+  const payload = req.body;
+  const token = payload.token;
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    return res.send({message: "Success"});
+  }
+  catch(e) {
+    return res.send({message: "Invalid token"});
+  }
+})
+
 // Create post
 app.post('/createPost', async (req, res) => {
 });
@@ -104,41 +117,3 @@ app.listen(PORT, (error) => {
   }
   console.log(`Express app - listening on port ${PORT}!`);
 });
-
-// Sending post request with fetch
-// ================================================================
-// async function sendPostRequest() {
-//   const url = 'https://typicode.com';
-  
-//   // Prepare the payload data
-//   const payload = {
-//     title: 'Hello World',
-//     body: 'This is my post content',
-//     userId: 1
-//   };
-
-//   try {
-//     // Initiate the POST request
-//     const response = await fetch(url, {
-//       method: 'POST', 
-//       headers: {
-//         'Content-Type': 'application/json' // Instructs the server we are sending JSON data
-//       },
-//       body: JSON.stringify(payload) // Converts the JS object into a JSON string
-//     });
-
-//     // Check if the server responded with a success status (200-299)
-//     if (!response.ok) {
-//       throw new Error(`HTTP error! Status: ${response.status}`);
-//     }
-
-//     // Parse and log the JSON response data
-//     const responseData = await response.json();
-//     console.log('Success:', responseData);
-
-//   } catch (error) {
-//     // Catch network failures or parsing errors
-//     console.error('Error sending request:', error);
-//   }
-// }
-// ================================================================
