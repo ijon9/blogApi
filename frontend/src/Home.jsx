@@ -25,9 +25,12 @@ function Home() {
       password: document.getElementById('password').value,
     }
     const response = await axios.post(backendURL+'/logIn', payload);
-    // console.log(response.data);
     document.getElementById('email').value = '';
     document.getElementById('password').value = '';
+    const obj = response.data;
+    if(obj.message !== "Success") alert(obj.message);
+    localStorage.setItem('token', obj.token);
+    console.log(localStorage.getItem('token'));
   }
 
   return (

@@ -2,6 +2,9 @@ import { prisma } from "./lib/prisma.js";
 import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken';
+
+const secretKey = "secret1329487239";
 
 // const express = require("express");
 const app = express();
@@ -25,6 +28,27 @@ app.get('/', async (req, res) => {
 app.post('/createPost', async (req, res) => {
 });
 
+// TEST JWT
+app.post('/testJwt', async(req, res) => {
+  try {
+    const bearerHeader = req.headers['authorization'];
+    // Check if bearer is undefined
+    if(typeof bearerHeader !== 'undefined') {
+        // Split at the space
+        const bearer = bearerHeader.split(' ');
+        // Get token from array
+        const token = bearer[1];
+        // Set the token
+        const decoded = jwt.verify(token, secretKey);
+        console.log(decoded);
+        res.send("Success");
+    }
+  }
+  catch(e) {
+    res.send("Invalid token");
+  }
+})
+
 // Login
 app.post('/logIn', async (req, res) => {
   const payload = req.body;
@@ -33,13 +57,14 @@ app.post('/logIn', async (req, res) => {
     where: { email: payload.email },
   })
   if(!user) {
-    return res.send("Incorrect email");
+    return res.send({ message: "Incorrect email" });
   }
   const match = await bcrypt.compare(payload.password, user.password);
   if(!match) {
-    return res.send("Incorrect password");
+    return res.send( { message: "Incorrect password" });
   }
-  return res.send("Success");
+  const token = jwt.sign(user, secretKey, {expiresIn: "1h" });
+  return res.send( { message: "Success", token: token} );
 });
 
 // Create comment
