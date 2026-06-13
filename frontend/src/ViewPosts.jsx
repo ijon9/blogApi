@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios, { isCancel, AxiosError } from 'axios';
 import { useNavigate } from 'react-router';
+import PostHome from './PostHome.jsx'
 
 function ViewPosts() {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
@@ -10,21 +11,15 @@ function ViewPosts() {
   useEffect(() => {
     const grab = async () => {
         const t = localStorage.getItem('token');
-        if(t === null) {
+        const response = await axios.post(backendURL+'/viewPosts', {token: t});
+        const msg = response.data.message;
+        if(msg === "Invalid token") {
             alert("Please log in");
             navigate('/');
         }
         else {
-            const response = await axios.post(backendURL+'/viewPosts', {token: t});
-            const msg = response.data.message;
-            if(msg === "Invalid token") {
-                alert("Please log in");
-                navigate('/');
-            }
-            else {
-                setPosts(["Alice", "Bob", "Cat"]);
-                console.log(msg);
-            }
+            setPosts(response.data.posts);
+            console.log(response.data.posts);
         }
     };
     grab();
@@ -34,10 +29,10 @@ function ViewPosts() {
 
   return (
     <>
-        {/* {posts.map((p, ind) => (
-            <h1>{p}</h1>
-        ))} */}
-        <div>Rendered</div>
+        <h1 style={{textAlign: "center"}}>All Posts</h1>
+        {posts.map((p, ind) => (
+            <PostHome post={p} key={p.p_id}/>
+        ))}
     </>
   )
 }

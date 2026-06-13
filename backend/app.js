@@ -3,8 +3,12 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken';
+import { jwtDecode } from "jwt-decode";
 
 const secretKey = "secret1329487239";
+
+// npx prisma studio --config ./prisma.config.js
+
 
 // const express = require("express");
 const app = express();
@@ -25,7 +29,40 @@ app.get('/', async (req, res) => {
 })
 
 // Get posts
+// SELECT p.id AS p_id, u.name, p.title, p.content, p.date 
+//   FROM "User" u
+// LEFT JOIN
+//   "Post" p ON u.id = p.authorid
+// WHERE p.published
+
+// Get comments
+// SELECT u.name, c.content, c.date, c.id
+// FROM "User" u
+// LEFT JOIN "Comment" c
+// ON c.authorid = u.id
+// WHERE c."postId" = 2
 app.post('/viewPosts', async(req, res) => {
+  const payload = req.body;
+  const token = payload.token;
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    const posts = await prisma.$queryRaw`
+      SELECT p.id AS p_id, u.name, p.title, p.content, p.date 
+      FROM "User" u
+      LEFT JOIN
+      "Post" p ON u.id = p.authorid
+      WHERE p.published
+      ORDER BY p.date desc
+    `;
+    return res.send({message: "Success", posts});
+  }
+  catch(e) {
+    return res.send({message: "Invalid token"});
+  }
+})
+
+// Studio
+app.post('/studio', async(req, res) => {
   const payload = req.body;
   const token = payload.token;
   try {
@@ -39,28 +76,47 @@ app.post('/viewPosts', async(req, res) => {
 
 // Create post
 app.post('/createPost', async (req, res) => {
+  const payload = req.body;
+  const token = payload.token;
+  try {
+    const decoded = jwt.verify(token, secretKey);
+    const user = jwtDecode(token);
+    const post = await prisma.post.create({
+      data: {
+        title: payload.title,
+        content: payload.content,
+        authorid: user.id,
+        published: payload.published
+      }
+    });
+    return res.send({message: "Success", post});
+  }
+  catch(e) {
+    return res.send({message: "Invalid token"});
+    
+  }
 });
 
 // TEST JWT
-app.post('/testJwt', async(req, res) => {
-  try {
-    const bearerHeader = req.headers['authorization'];
-    // Check if bearer is undefined
-    if(typeof bearerHeader !== 'undefined') {
-        // Split at the space
-        const bearer = bearerHeader.split(' ');
-        // Get token from array
-        const token = bearer[1];
-        // Set the token
-        const decoded = jwt.verify(token, secretKey);
-        console.log(decoded);
-        res.send("Success");
-    }
-  }
-  catch(e) {
-    res.send("Invalid token");
-  }
-})
+// app.post('/testJwt', async(req, res) => {
+//   try {
+//     const bearerHeader = req.headers['authorization'];
+//     // Check if bearer is undefined
+//     if(typeof bearerHeader !== 'undefined') {
+//         // Split at the space
+//         const bearer = bearerHeader.split(' ');
+//         // Get token from array
+//         const token = bearer[1];
+//         // Set the token
+//         const decoded = jwt.verify(token, secretKey);
+//         console.log(decoded);
+//         res.send("Success");
+//     }
+//   }
+//   catch(e) {
+//     res.send("Invalid token");
+//   }
+// })
 
 // Login
 app.post('/logIn', async (req, res) => {

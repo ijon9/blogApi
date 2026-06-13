@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-
+import axios, { isCancel, AxiosError } from 'axios';
+import { useNavigate } from 'react-router';
 // Create new post section
 
 // Current posts (including comments, published/unpublished)import { useState } from 'react'
@@ -17,7 +18,51 @@ const headingStyle = {
     marginTop: "0px"
 }
 
-function Studio() {    
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+
+function Studio() {
+    const [yourPosts, setYourPosts] = useState([]);
+    const navigate = useNavigate();
+
+
+    useEffect(() => {
+    const grab = async () => {
+        const t = localStorage.getItem('token');
+        const response = await axios.post(backendURL+'/studio', {token: t});
+        const msg = response.data.message;
+        if(msg === "Invalid token") {
+            alert("Please log in");
+            navigate('/');
+        }
+        else {
+            console.log(msg);
+        }
+    };
+    grab();
+  }, []);
+
+  
+
+  async function createPost() {
+    const payload = {
+      title: document.getElementById('title').value,
+      content: document.getElementById('content').value,
+      published: document.getElementById('publish').checked,
+      token: localStorage.getItem("token"),
+    }
+    const response = await axios.post(backendURL+'/createPost', payload);
+    document.getElementById('title').value = '';
+    document.getElementById('content').value = '';
+    document.getElementById('publish').checked = false;
+    const msg = response.data.message;
+    if(msg === "Invalid token") {
+        alert("Please log in");
+        navigate('/');
+        return;
+    }
+  }
+
   return (
     <>
         <h1 style={{textAlign: "center"}}> Blog Studio </h1>
@@ -29,9 +74,9 @@ function Studio() {
                 <label for="content">Content:</label><br />
                 <textarea id="content" name="content" rows="4" cols="25">
                 </textarea><br />
-                <label for="pubish">Publish</label>
-                <input type="checkbox" id="publish" name="publish" value="true"></input><br/>
-                <button type="submit">Submit</button>
+                <label for="publish">Publish</label>
+                <input type="checkbox" id="publish" name="publish"></input><br/>
+                <button type="submit" onClick={() => createPost()}>Submit</button>
             </div>
         </div>
     </>
