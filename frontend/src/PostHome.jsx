@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router';
 function PostHome({ post }) {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
-  const [comments, setComments] = useState([]);
 
   const outerDiv = {
     border: "1px solid black",
+    cursor: "pointer"
   }
 
   const headerDiv = {
@@ -23,14 +23,16 @@ function PostHome({ post }) {
 
   return (
     <>
-       <div style={outerDiv}>
+       <div style={outerDiv} onClick={() => {
+          navigate('/onePost', { state: { post }});
+       }}>
         <div style={headerDiv}>
             <div><h2 style={{margin: "0px"}}>{post.title}</h2></div>
             <div>By: {post.name}</div>
             <div>{date2}</div>
         </div>
          
-         <p>
+         <p style={{padding: "10px"}}>
             {post.content}
          </p>
        </div>

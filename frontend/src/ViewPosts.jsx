@@ -7,19 +7,28 @@ function ViewPosts() {
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
+  const [currUser, setCurrUser] = useState({});
+  
+  const divStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "50px"
+  }
 
   useEffect(() => {
     const grab = async () => {
         const t = localStorage.getItem('token');
-        const response = await axios.post(backendURL+'/viewPosts', {token: t});
-        const msg = response.data.message;
-        if(msg === "Invalid token") {
+        const resp = await axios.post(backendURL+'/verifyUser', {token: t});
+        
+        const loginMsg = resp.data.message;
+        if(loginMsg === "Invalid token") {
             alert("Please log in");
             navigate('/');
         }
         else {
+            setCurrUser(resp.data.user);
+            const response = await axios.get(backendURL+'/viewPosts');
             setPosts(response.data.posts);
-            console.log(response.data.posts);
         }
     };
     grab();
@@ -29,10 +38,22 @@ function ViewPosts() {
 
   return (
     <>
-        <h1 style={{textAlign: "center"}}>All Posts</h1>
-        {posts.map((p, ind) => (
-            <PostHome post={p} key={p.p_id}/>
-        ))}
+      <div>
+        <button onClick={() => {
+          navigate('/Studio');
+        }}>Studio</button>
+        <button onClick= {() => {
+          localStorage.removeItem('token');
+          navigate('/');
+        }}>Log Out</button>
+      </div>
+      <h3>Welcome {currUser.name}!</h3>
+      <h1 style={{textAlign: "center"}}>All Posts</h1>
+      <div style={divStyle}>
+          {posts.map((p, ind) => (
+              <PostHome post={p} key={p.p_id}/>
+          ))} 
+      </div>
     </>
   )
 }

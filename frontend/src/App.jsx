@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import Home from "./Home.jsx"
 import Studio from "./Studio.jsx"
 import ViewPosts from './ViewPosts.jsx';
+import OpenPost from './OpenPost.jsx'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -19,6 +20,10 @@ function App() {
       {
         path: "/viewPosts",
         element: <ViewPosts />
+      },
+      {
+        path: "/onePost",
+        element: <OpenPost />
       },
     ])
 

@@ -21,31 +21,19 @@ app.use(cors({
 
 app.use(express.json());
 
-app.get('/', async (req, res) => {
-    const users = await prisma.user.findMany({});
-    console.log(users);
-    res.send(users);
-    // res.redirect('https://google.com');
-})
-
-// Get posts
-// SELECT p.id AS p_id, u.name, p.title, p.content, p.date 
-//   FROM "User" u
-// LEFT JOIN
-//   "Post" p ON u.id = p.authorid
-// WHERE p.published
-
-// Get comments
-// SELECT u.name, c.content, c.date, c.id
-// FROM "User" u
-// LEFT JOIN "Comment" c
-// ON c.authorid = u.id
-// WHERE c."postId" = 2
-app.post('/viewPosts', async(req, res) => {
-  const payload = req.body;
-  const token = payload.token;
+// Verify User
+app.post('/verifyUser', async(req, res) => {
+  const token = req.body.token;
   try {
     const decoded = jwt.verify(token, secretKey);
+    return res.send({message: "Success", user: jwtDecode(token)});
+  } catch(e) {
+    return res.send({message: "Invalid token"});
+  }
+})
+
+app.get('/viewPosts', async(req, res) => {
+  try {
     const posts = await prisma.$queryRaw`
       SELECT p.id AS p_id, u.name, p.title, p.content, p.date 
       FROM "User" u
@@ -54,24 +42,50 @@ app.post('/viewPosts', async(req, res) => {
       WHERE p.published
       ORDER BY p.date desc
     `;
-    return res.send({message: "Success", posts});
+    return res.send({message: "Posts retrieved", posts});
   }
   catch(e) {
-    return res.send({message: "Invalid token"});
+    return res.send({message: "Invalid query"});
   }
+})
+
+app.get('/viewYourPosts/:id', async(req, res) => {
+  try {
+    const userId = req.params.id;
+    const posts = await prisma.$queryRaw`
+      SELECT p.id AS p_id, u.name, p.title, p.content, p.date 
+      FROM "User" u
+      LEFT JOIN
+      "Post" p ON u.id = p.authorid
+      WHERE p.published AND u.id = ${userId}
+      ORDER BY p.date desc
+    `;
+    return res.send({message: "Your posts retrieved", posts});
+  } catch(e) {
+    return res.send({message: "Invalid query" });
+  }
+})
+
+app.get('/getComments/:id', async (req, res) => {
+  const p_id = req.params.id;
+  try {
+    const comments = await prisma.$queryRaw`
+      SELECT u.name, c.content, c.date, c.id
+      FROM "User" u
+      LEFT JOIN "Comment" c
+      ON c.authorid = u.id
+      WHERE c."postId" = ${p_id}
+      ORDER BY c.date ASC
+    `;
+    return res.send({message: "Comments retrieved", comments})
+  } catch(e) {
+    return res.send({message: "Invalid query"});
+  }
+  
 })
 
 // Studio
 app.post('/studio', async(req, res) => {
-  const payload = req.body;
-  const token = payload.token;
-  try {
-    const decoded = jwt.verify(token, secretKey);
-    return res.send({message: "Success"});
-  }
-  catch(e) {
-    return res.send({message: "Invalid token"});
-  }
 })
 
 // Create post
@@ -79,7 +93,6 @@ app.post('/createPost', async (req, res) => {
   const payload = req.body;
   const token = payload.token;
   try {
-    const decoded = jwt.verify(token, secretKey);
     const user = jwtDecode(token);
     const post = await prisma.post.create({
       data: {
@@ -89,13 +102,32 @@ app.post('/createPost', async (req, res) => {
         published: payload.published
       }
     });
-    return res.send({message: "Success", post});
+    return res.send({message: "Post created", post});
   }
   catch(e) {
-    return res.send({message: "Invalid token"});
+    return res.send({message: "Invalid query"});
     
   }
 });
+
+// Create comment
+app.post('/createComment', async (req, res) => {
+  const payload = req.body;
+  const token = payload.token;
+  try {
+    const user = jwtDecode(token);
+    const comment = await prisma.comment.create({
+      data: {
+        authorid: user.id,
+        content: payload.content,
+        postId: payload.p_id,
+      }
+    });
+    return res.send({ message: "Comment created", comment });
+  } catch(e) {
+    return res.send({ message: "Invalid query" });
+  }
+})
 
 // TEST JWT
 // app.post('/testJwt', async(req, res) => {
@@ -155,16 +187,6 @@ app.post('/signUp', async (req, res) => {
   
   res.send("Success");
 })
-
-// import { jwtDecode } from "jwt-decode";
-
-// const token = localStorage.getItem("token");
-// if (token) {
-//     const user = jwtDecode(token);
-//     console.log(user.name); // Accessing token properties
-// }
-
-// Log in
 
 const PORT = 3000;
 app.listen(PORT, (error) => {

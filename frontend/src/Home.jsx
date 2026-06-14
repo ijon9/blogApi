@@ -31,7 +31,10 @@ function Home() {
     document.getElementById('email').value = '';
     document.getElementById('password').value = '';
     const obj = response.data;
-    if(obj.message !== "Success") alert(obj.message);
+    if(obj.message !== "Success") {
+      alert(obj.message);
+      return;
+    }
     localStorage.setItem('token', obj.token);
     navigate("/viewPosts");
     // console.log(localStorage.getItem('token'));
