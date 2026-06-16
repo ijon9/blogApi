@@ -75,7 +75,7 @@ function OpenPost() {
             <div>{date2}</div>
         </div>
          
-         <p>
+         <p style={{overflowWrap: "break-word"}}>
             {post.content}
          </p>
 

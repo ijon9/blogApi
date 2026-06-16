@@ -31,8 +31,7 @@ function PostHome({ post }) {
             <div>By: {post.name}</div>
             <div>{date2}</div>
         </div>
-         
-         <p style={{padding: "10px"}}>
+         <p style={{padding: "10px", overflowWrap: "break-word"}}>
             {post.content}
          </p>
        </div>

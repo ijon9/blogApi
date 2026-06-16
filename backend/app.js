@@ -94,6 +94,20 @@ app.post('/deletePost', async(req, res) => {
   }
 })
 
+app.post('/deleteComment', async(req, res) => {
+  const cid = req.body.cid;
+  try {
+    const deleteComment = await prisma.comment.delete({
+      where: {
+        id: cid,
+      }
+    })
+    return res.send({ message: "Comment deleted", deleteComment});
+  } catch(e) {
+    return res.send({message: "Invalid query" });
+  }
+})
+
 app.get('/getComments/:id', async (req, res) => {
   const p_id = req.params.id;
   try {
@@ -122,6 +136,7 @@ app.post('/createPost', async (req, res) => {
   const token = payload.token;
   try {
     const user = jwtDecode(token);
+    if(payload.content === '' || payload.title === '') throw new Error();
     const post = await prisma.post.create({
       data: {
         title: payload.title,
@@ -144,6 +159,7 @@ app.post('/createComment', async (req, res) => {
   const token = payload.token;
   try {
     const user = jwtDecode(token);
+    if(payload.content === '') throw new Error();
     const comment = await prisma.comment.create({
       data: {
         authorid: user.id,
@@ -156,27 +172,6 @@ app.post('/createComment', async (req, res) => {
     return res.send({ message: "Invalid query" });
   }
 })
-
-// TEST JWT
-// app.post('/testJwt', async(req, res) => {
-//   try {
-//     const bearerHeader = req.headers['authorization'];
-//     // Check if bearer is undefined
-//     if(typeof bearerHeader !== 'undefined') {
-//         // Split at the space
-//         const bearer = bearerHeader.split(' ');
-//         // Get token from array
-//         const token = bearer[1];
-//         // Set the token
-//         const decoded = jwt.verify(token, secretKey);
-//         console.log(decoded);
-//         res.send("Success");
-//     }
-//   }
-//   catch(e) {
-//     res.send("Invalid token");
-//   }
-// })
 
 // Login
 app.post('/logIn', async (req, res) => {
@@ -202,6 +197,7 @@ app.post('/signUp', async (req, res) => {
   const payload = req.body;
   const hashed = await bcrypt.hash(payload.password, 10);
   try {
+    if(payload.password === '' || payload.email === '' || payload.name === '') throw new Error("Empty field");
     const user = await prisma.user.create({
       data: {
         email: payload.email,
@@ -210,7 +206,8 @@ app.post('/signUp', async (req, res) => {
       }
     });
   } catch(e) {
-    res.send("Email already exists");
+    if(e.message === "Empty field") return res.send("Empty field");
+    return res.send("Email already exists");
   }
   
   res.send("Success");

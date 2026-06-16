@@ -12,7 +12,6 @@ function PostStudio({ post }) {
 
   const outerDiv = {
     border: "1px solid black",
-    cursor: "pointer"
   }
 
   const headerDiv = {
@@ -115,7 +114,18 @@ function PostStudio({ post }) {
   }
 
   async function deleteComment(cid) {
-
+    const t = localStorage.getItem('token');
+    const resp = await axios.post(backendURL+'/verifyUser', {token: t});
+    
+    const loginMsg = resp.data.message;
+    if(loginMsg === "Invalid token") {
+        alert("Please log in");
+        navigate('/');
+        return;
+    }
+    const response = await axios.post(backendURL+'/deleteComment/',{cid});
+    const comments = await axios.get(backendURL+'/getComments/'+yourPost.p_id);
+    setComments(comments.data.comments);
   }
 
   return (
@@ -145,7 +155,7 @@ function PostStudio({ post }) {
           showComments 
           ? comments.map((com) => (
            <div key={'postStudio'+com.id}> 
-            <strong>{com.name}: </strong>{com.content} <button>x</button>
+            <strong>{com.name}: </strong>{com.content} <button onClick={() => deleteComment(com.id)}>x</button>
            </div> 
           ))
           : null
