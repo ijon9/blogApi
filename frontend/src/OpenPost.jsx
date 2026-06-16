@@ -81,7 +81,7 @@ function OpenPost() {
 
          <h2>Comments</h2>
          {comments.map((com, ind) => (
-              <p><strong>{com.name}:</strong> {com.content} at <strong>{formatDate(com.date)}</strong></p>
+              <p key={"openPost"+com.id}><strong>{com.name}:</strong> {com.content} at <strong>{formatDate(com.date)}</strong></p>
           ))} 
 
         <div style={{padding: "10px"}}>

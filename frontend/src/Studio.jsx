@@ -67,7 +67,8 @@ function Studio() {
     document.getElementById('content').value = '';
     document.getElementById('publish').checked = false;
     const msg = response.data.message;
-    
+    const postsResponse = await axios.get(backendURL+'/viewYourPosts/'+currUser.id);
+    setYourPosts(postsResponse.data.posts);
   }
 
   const postStyle = {

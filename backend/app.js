@@ -37,7 +37,7 @@ app.get('/viewPosts', async(req, res) => {
     const posts = await prisma.$queryRaw`
       SELECT p.id AS p_id, u.name, p.title, p.content, p.date 
       FROM "User" u
-      LEFT JOIN
+      INNER JOIN
       "Post" p ON u.id = p.authorid
       WHERE p.published
       ORDER BY p.date desc
@@ -53,14 +53,42 @@ app.get('/viewYourPosts/:id', async(req, res) => {
   try {
     const userId = req.params.id;
     const posts = await prisma.$queryRaw`
-      SELECT p.id AS p_id, u.name, p.title, p.content, p.date 
+      SELECT p.id AS p_id, u.name, p.title, p.content, p.date, p.published
       FROM "User" u
-      LEFT JOIN
+      INNER JOIN
       "Post" p ON u.id = p.authorid
-      WHERE p.published AND u.id = ${userId}
+      WHERE u.id = ${userId}
       ORDER BY p.date desc
     `;
     return res.send({message: "Your posts retrieved", posts});
+  } catch(e) {
+    return res.send({message: "Invalid query" });
+  }
+})
+
+app.post('/updatePost', async(req, res) => {
+  const payload = req.body;
+  try {
+    const updPost = await prisma.post.update({
+      where: {id: payload.id},
+      data: { title: payload.title, content: payload.content, published: payload.published}
+    });
+    return res.send({message: "Your post updated", updPost});
+  } catch(e) {
+    return res.send({message: "Invalid query" });
+  }
+})
+
+app.post('/deletePost', async(req, res) => {
+  const pid = req.body.pid;
+  try {
+    const deleteComments = await prisma.comment.deleteMany({
+      where: { postId: pid }
+    });
+    const delPost = await prisma.post.delete({
+      where: { id : pid }
+    });
+    return res.send({ message: "Your post deleted", delPost });
   } catch(e) {
     return res.send({message: "Invalid query" });
   }
@@ -72,7 +100,7 @@ app.get('/getComments/:id', async (req, res) => {
     const comments = await prisma.$queryRaw`
       SELECT u.name, c.content, c.date, c.id
       FROM "User" u
-      LEFT JOIN "Comment" c
+      INNER JOIN "Comment" c
       ON c.authorid = u.id
       WHERE c."postId" = ${p_id}
       ORDER BY c.date ASC
